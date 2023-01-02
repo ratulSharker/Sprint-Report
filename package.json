@@ -1,0 +1,25 @@
+{
+  "name": "sprint-report",
+  "version": "1.0.0",
+  "description": "Configurable sprint report",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ratulSharker/Sprint-Report.git"
+  },
+  "keywords": [
+    "sprint",
+    "agile",
+    "report",
+    "story point"
+  ],
+  "author": "Ratul Sharker",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ratulSharker/Sprint-Report/issues"
+  },
+  "homepage": "https://github.com/ratulSharker/Sprint-Report#readme"
+}
