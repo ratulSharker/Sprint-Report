@@ -2,8 +2,9 @@
   "name": "sprint-report",
   "version": "1.0.0",
   "description": "Configurable sprint report",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
+	"start" : "node src/index.js",
     "test": "test"
   },
   "repository": {
@@ -21,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/ratulSharker/Sprint-Report/issues"
   },
-  "homepage": "https://github.com/ratulSharker/Sprint-Report#readme"
+  "homepage": "https://github.com/ratulSharker/Sprint-Report#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3"
+  }
 }
