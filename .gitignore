@@ -106,6 +106,7 @@ dist
 # Project specifics
 *.csv
 output/*
+tmp/*
 
 # IDE
 .vscode/*

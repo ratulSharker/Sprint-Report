@@ -1,6 +1,8 @@
 require('dotenv').config();
 const csv = require("csvtojson");
 const moment = require("moment");
+const fs = require("fs");
+const handlebars = require("handlebars");
 
 async function readCSVAsJson(inputCsvFilePath) {
 	return await csv().fromFile(inputCsvFilePath);
@@ -152,6 +154,18 @@ function prepareIssueCountTestedByNoneAndStatusIsDone(csvRows, statusFieldName, 
 	return issueCount;
 }
 
+function prepareAssignee(csvRows, assigneeFieldName) {
+	let assignees = new Set();
+
+	csvRows.filter(csvRowFilters.assigneeIsNotEmpty(assigneeFieldName))
+	.forEach(csvRow => {
+		const assignee = csvRow[assigneeFieldName];
+		assignees.add(assignee);
+	});
+
+	return Array.from(assignees).sort();
+}
+
 async function readCSVAndGenerateReport() {
 
 	const csvRows = await readCSVAsJson(process.env.INPUT_CSV_FILE_NAME);
@@ -180,6 +194,28 @@ async function readCSVAndGenerateReport() {
 
 	const directlyMadeDoneIssueCount = prepareIssueCountTestedByNoneAndStatusIsDone(csvRows, process.env.STATUS_FIELD_NAME, process.env.TESTED_BY_FIELD_NAME, process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
 	console.log(directlyMadeDoneIssueCount);
+
+	const assignees = prepareAssignee(csvRows, process.env.ASSIGNEE_FIELD_NAME);
+
+	handlebars.registerHelper("for", function(array, block) {
+		let accum = "";
+		array.forEach(function(item) {
+			accum += block.fn(item);
+		});
+		return accum;
+	});
+
+	// handlebars.registerHelper("accessValue", function(perAssigneePerStatusValues, ))
+
+	const source = fs.readFileSync("src/template.hbr");
+	const template = handlebars.compile(String(source));
+	const result = template({
+		title : "Report for " + process.env.CURRENT_SPRINT,
+		statuses: sprintStatuses,
+		assignees: assignees,
+		perAssigneePerStatusIssueCount: perAssigneePerStatusIssueCount
+	});
+	fs.writeFileSync("tmp/index.html", result);
 }
 
 readCSVAndGenerateReport();
