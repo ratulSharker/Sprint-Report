@@ -2,7 +2,6 @@ require('dotenv').config();
 const csv = require("csvtojson");
 const moment = require("moment");
 
-
 async function readCSVAsJson(inputCsvFilePath) {
 	return await csv().fromFile(inputCsvFilePath);
 }
@@ -54,6 +53,7 @@ const csvRowFilters = {
 
 function prepareReportDataForPerAssigneePerStatusIssueCount(csvRows, sprintName, assigneeFieldName, statusFieldName, sprintFieldName, updatedFieldName, sprintStartMomentDate, sprintEndMomentDate) {
 	const perAssigneePerStatusIssueCount = {};
+	const totalKey = "Total";
 	csvRows
 		.filter(csvRowFilters.updatedBetween(updatedFieldName, sprintStartMomentDate, sprintEndMomentDate))
 		.filter(csvRowFilters.assigneeIsNotEmpty(assigneeFieldName))
@@ -63,8 +63,10 @@ function prepareReportDataForPerAssigneePerStatusIssueCount(csvRows, sprintName,
 
 			const statusWiseIssueCount = perAssigneePerStatusIssueCount[assignee] || {};
 			const issueCount = statusWiseIssueCount[status] ? statusWiseIssueCount[status] + 1 : 1;
+			const totalCount = statusWiseIssueCount[totalKey] ? statusWiseIssueCount[totalKey] + 1 : 1;
 
 			statusWiseIssueCount[status] = issueCount;
+			statusWiseIssueCount[totalKey] = totalCount;
 			perAssigneePerStatusIssueCount[assignee] = statusWiseIssueCount;
 		});
 
@@ -72,7 +74,8 @@ function prepareReportDataForPerAssigneePerStatusIssueCount(csvRows, sprintName,
 }
 
 function prepareReportDataForPerAssigneePerStatusStoryPoints(csvRows, sprintName, assigneeFieldName, statusFieldName, sprintFieldName, storyPointFieldName, updatedFieldName, sprintStartMomentDate, sprintEndMomentDate) {
-	const perAssigneePerStatusStoryPoints = {};
+	let perAssigneePerStatusStoryPoints = {};
+	const totalKey = "Total";
 	csvRows
 		.filter(csvRowFilters.updatedBetween(updatedFieldName, sprintStartMomentDate, sprintEndMomentDate))
 		.filter(csvRowFilters.assigneeIsNotEmpty(assigneeFieldName))
@@ -81,11 +84,13 @@ function prepareReportDataForPerAssigneePerStatusStoryPoints(csvRows, sprintName
 			const status = csvRow[statusFieldName];
 			let storyPoint = parseFloat(csvRow[storyPointFieldName]);
 			storyPoint = isNaN(storyPoint) ? 0 : storyPoint;
-
+	
 			const statusWiseStoryPoints = perAssigneePerStatusStoryPoints[assignee] || {};
-			const storyPoints = statusWiseStoryPoints[status] != undefined ? statusWiseStoryPoints[status] + storyPoint : 0;
-
+			const storyPoints = statusWiseStoryPoints[status] != undefined ? statusWiseStoryPoints[status] + storyPoint : storyPoint;
+			const totalPoints = statusWiseStoryPoints[totalKey] != undefined ? statusWiseStoryPoints[totalKey] + storyPoint : storyPoint;
+	
 			statusWiseStoryPoints[status] = storyPoints;
+			statusWiseStoryPoints[totalKey] = totalPoints;
 			perAssigneePerStatusStoryPoints[assignee] = statusWiseStoryPoints;
 		});
 
@@ -150,6 +155,7 @@ function prepareIssueCountTestedByNoneAndStatusIsDone(csvRows, statusFieldName, 
 async function readCSVAndGenerateReport() {
 
 	const csvRows = await readCSVAsJson(process.env.INPUT_CSV_FILE_NAME);
+	const sprintStatuses = process.env.SPRINT_STATUSES.split(",");
 
 	const sprintStartMomentDate = moment(process.env.SPRINT_START_DATE, "DD/MM/YYYY");
 	const sprintEndMomentDate = moment(process.env.SPRINT_END_DATE, "DD/MM/YYYY");
