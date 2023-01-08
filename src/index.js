@@ -187,7 +187,7 @@ async function readCSVAndGenerateReport() {
 	const source = fs.readFileSync("src/template.hbr");
 	const template = handlebars.compile(String(source));
 	const result = template({
-		title : "Report for " + process.env.CURRENT_SPRINT,
+		title : process.env.CURRENT_SPRINT,
 		statuses: sprintStatuses,
 		// assignees: assignees,
 		perAssigneePerStatusIssueCount: function() {
@@ -230,7 +230,8 @@ async function readCSVAndGenerateReport() {
 		}(),
 		perTestedByIssueNotInReadyToQA: perTestedByIssueNotInReadyToQA,
 		issueCountAndStoryPointsInReadyToQA: issueCountAndStoryPointsInReadyToQA,
-		issueCountAndStoryPointsInBacklog: issueCountAndStoryPointsInBacklog
+		issueCountAndStoryPointsInBacklog: issueCountAndStoryPointsInBacklog,
+		issues: csvRows
 	});
 	fs.writeFileSync("tmp/index.html", result);
 }
