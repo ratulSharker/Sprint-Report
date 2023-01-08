@@ -231,7 +231,24 @@ async function readCSVAndGenerateReport() {
 		perTestedByIssueNotInReadyToQA: perTestedByIssueNotInReadyToQA,
 		issueCountAndStoryPointsInReadyToQA: issueCountAndStoryPointsInReadyToQA,
 		issueCountAndStoryPointsInBacklog: issueCountAndStoryPointsInBacklog,
-		issues: csvRows
+		issues: function() {
+			let result = [];
+			for (let index in csvRows) {
+				let csvRow = csvRows[index];
+				let row = {
+					"issueKey" : csvRow[process.env.ISSUE_KEY_FIELD_NAME],
+					"issueType" : csvRow[process.env.ISSUE_TYPE_FIELD_NAME],
+					"status" : csvRow[process.env.STATUS_FIELD_NAME],
+					"assignee" : csvRow[process.env.ASSIGNEE_FIELD_NAME],
+					"tester" : csvRow[process.env.TESTED_BY_FIELD_NAME],
+					"storyPoint" : csvRow[process.env.STORY_POINT_FIELD_NAME],
+					"summary" : csvRow[process.env.SUMMARY_FIELD_NAME]
+				};
+				result.push(row);
+			}
+			return result;
+		}(),
+
 	});
 	fs.writeFileSync("tmp/index.html", result);
 }

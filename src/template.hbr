@@ -67,6 +67,11 @@
 			font-size: 12px;
 		}
 
+		.fl-table td.huge-data {
+			white-space: normal;
+			text-align: left;
+		}
+
 		.fl-table thead th {
 			color: #ffffff;
 			background: #4FC3A1;
@@ -270,11 +275,31 @@
 		</table>
 	</div>
 
-	<h2>Issues</h2>
+	<h2>Issues (total:{{ issues.length }})</h2>
 	<div class="table-wrapper">
 		<table class="fl-table">
-			
-
+			<thead>
+				<th>Key</th>
+				<th>Type</th>
+				<th>Status</th>
+				<th>Assignee</th>
+				<th>Tester</th>
+				<th>Story point</th>
+				<th>Summary</th>
+			</thead>
+			<tbody>
+				{{#each issues}}
+					<tr>
+						<td>{{this.issueKey}}</td>
+						<td>{{this.issueType}}</td>
+						<td>{{this.status}}</td>
+						<td>{{this.assignee}}</td>
+						<td>{{this.tester}}</td>
+						<td>{{this.storyPoint}}</td>
+						<td class="huge-data">{{this.summary}}</td>
+					</tr>
+				{{/each}}
+			</tbody>
 		</table>
 	</div>
 
