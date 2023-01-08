@@ -7,25 +7,97 @@
 	<title>{{title}}</title>
 </head>
 <body>
+	<h2>Per assignee per status issue count</h2>
 	<table border="5">
 		<thead>
-			<th>Assignee</th>
-			{{#for statuses}}
-				<th>{{this}}</th>
-			{{/for}}
+			<th>Assignee / Status</th>
+			{{#each statuses as |status| }}
+				<th>{{status}}</th>
+			{{/each}}
 			<th>Total</th>
 		</thead>
 		<tbody>
-			<tr>
-			{{#for assignees}}
-				<td>{{this}}</td>
-				{{#for statuses}}
-					<td>{{perAssigneePerStatusIssueCount[]}}</td>
-				{{/for}}
-
-			{{/for}}
-			</tr>
+			{{#each perAssigneePerStatusIssueCount }}
+				<tr>
+					{{#each this}}
+						{{#if @first}}
+							<td><b>{{this}}</b></td>
+						{{else if @last}}
+							<td><b>{{this}}</b></td>
+						{{else}}
+							<td>{{this}}</td>
+						{{/if}}
+					{{/each}}
+				</tr>
+			{{/each}}
 		</tbody>
 	</table>
+
+	<h2>Per assignee per status story point</h2>
+	<table border="5">
+		<thead>
+			<th>Assignee / Status</th>
+			{{#each statuses}}
+				<th>{{this}}</th>
+			{{/each}}
+			<th>Total</th>
+		</thead>
+		<tbody>
+			{{#each perAssigneePerStatusStoryPoint}}
+				<tr>
+					{{#each this}}
+						{{#if @first}}
+							<td><b>{{this}}</b></td>
+						{{else if @last}}
+							<td><b>{{this}}</b></td>
+						{{else}}
+							<td>{{this}}</td>
+						{{/if}}
+					{{/each}}
+				</tr>
+			{{/each}}
+		</tbody>
+	</table>
+
+	<h2>Per tester issue "not in QA"</h2>
+	<table border="5">
+		<thead>
+			<th>Tester</th>
+			<th>Issue count</th>
+		</thead>
+		<tbody>
+			{{#each perTestedByIssueNotInReadyToQA}}
+				<tr>
+					<td><b>{{@key}}</b></td>
+					<td>{{this}}</td>
+				</tr>
+			{{/each}}
+		</tbody>
+	</table>
+
+	<h2>"Ready to QA" & "Done" Statistics</h2>
+	<table border="5">
+		<thead>
+			<th>Category / Status</th>
+			<th>Backlog</th>
+			<th>Ready to QA</th>
+			<th>Done</th>
+		</thead>
+		<tbody>
+				<tr>
+					<td><b>Issue count</b></td>
+					<td>{{issueCountAndStoryPointsInBacklog.issueCount}}</td>
+					<td>{{issueCountAndStoryPointsInReadyToQA.issueCount}}</td>
+					<td>{{issueCountAndStoryPointsInReadyToQA.issueCount}}</td>
+				</tr>
+				<tr>
+					<td><b>Story points</b></td>
+					<td>{{issueCountAndStoryPointsInBacklog.storyPoints}}</td>
+					<td>{{issueCountAndStoryPointsInReadyToQA.storyPoints}}</td>
+					<td>{{issueCountAndStoryPointsInReadyToQA.storyPoints}}</td>
+				</tr>
+		</tbody>
+	</table>
+
 </body>
 </html>

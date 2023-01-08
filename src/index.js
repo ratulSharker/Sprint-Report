@@ -154,18 +154,6 @@ function prepareIssueCountTestedByNoneAndStatusIsDone(csvRows, statusFieldName, 
 	return issueCount;
 }
 
-function prepareAssignee(csvRows, assigneeFieldName) {
-	let assignees = new Set();
-
-	csvRows.filter(csvRowFilters.assigneeIsNotEmpty(assigneeFieldName))
-	.forEach(csvRow => {
-		const assignee = csvRow[assigneeFieldName];
-		assignees.add(assignee);
-	});
-
-	return Array.from(assignees).sort();
-}
-
 async function readCSVAndGenerateReport() {
 
 	const csvRows = await readCSVAsJson(process.env.INPUT_CSV_FILE_NAME);
@@ -175,45 +163,74 @@ async function readCSVAndGenerateReport() {
 	const sprintEndMomentDate = moment(process.env.SPRINT_END_DATE, "DD/MM/YYYY");
 
 	const perAssigneePerStatusIssueCount = prepareReportDataForPerAssigneePerStatusIssueCount(csvRows, process.env.CURRENT_SPRINT, process.env.ASSIGNEE_FIELD_NAME, process.env.STATUS_FIELD_NAME, process.env.SPRINT_FIELD_NAME, process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
-	console.log(perAssigneePerStatusIssueCount);
+	// console.log(perAssigneePerStatusIssueCount);
 
-	const perAssigneePerStatusStoryPoints = prepareReportDataForPerAssigneePerStatusStoryPoints(csvRows, process.env.CURRENT_SPRINT, process.env.ASSIGNEE_FIELD_NAME, process.env.STATUS_FIELD_NAME, process.env.SPRINT_FIELD_NAME, process.env.STORY_POINT_FIELD_NAME, process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
-	console.log(perAssigneePerStatusStoryPoints);
+	const perAssigneePerStatusStoryPoint = prepareReportDataForPerAssigneePerStatusStoryPoints(csvRows, process.env.CURRENT_SPRINT, process.env.ASSIGNEE_FIELD_NAME, process.env.STATUS_FIELD_NAME, process.env.SPRINT_FIELD_NAME, process.env.STORY_POINT_FIELD_NAME, process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
+	// console.log(perAssigneePerStatusStoryPoint);
 
 	const perTestedByIssueNotInReadyToQA = preparePerTestedByIssueNotInReadyToQA(csvRows, process.env.TESTED_BY_FIELD_NAME, process.env.STATUS_FIELD_NAME, process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
-	console.log(perTestedByIssueNotInReadyToQA);
+	// console.log(perTestedByIssueNotInReadyToQA);
 
 	const issueCountAndStoryPointsInReadyToQA = prepareIssueCountAndStoryPointsInGivenStatusName(csvRows, process.env.STATUS_FIELD_NAME, process.env.STORY_POINT_FIELD_NAME, "Ready To QA", process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
-	console.log(issueCountAndStoryPointsInReadyToQA);
+	// console.log(issueCountAndStoryPointsInReadyToQA);
 
 	const issueCountAndStoryPointsInDone = prepareIssueCountAndStoryPointsInGivenStatusName(csvRows, process.env.STATUS_FIELD_NAME, process.env.STORY_POINT_FIELD_NAME, "Done", process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
-	console.log(issueCountAndStoryPointsInDone);
+	// console.log(issueCountAndStoryPointsInDone);
 
 	const issueCountAndStoryPointsInBacklog = prepareIssueCountAndStoryPointsInGivenStatusName(csvRows, process.env.STATUS_FIELD_NAME, process.env.STORY_POINT_FIELD_NAME, "Backlog", process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
-	console.log(issueCountAndStoryPointsInBacklog);
+	// console.log(issueCountAndStoryPointsInBacklog);
 
-	const directlyMadeDoneIssueCount = prepareIssueCountTestedByNoneAndStatusIsDone(csvRows, process.env.STATUS_FIELD_NAME, process.env.TESTED_BY_FIELD_NAME, process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
-	console.log(directlyMadeDoneIssueCount);
+	// const directlyMadeDoneIssueCount = prepareIssueCountTestedByNoneAndStatusIsDone(csvRows, process.env.STATUS_FIELD_NAME, process.env.TESTED_BY_FIELD_NAME, process.env.UPDATED_FIELD_NAME, sprintStartMomentDate, sprintEndMomentDate);
+	// console.log(directlyMadeDoneIssueCount);
 
-	const assignees = prepareAssignee(csvRows, process.env.ASSIGNEE_FIELD_NAME);
-
-	handlebars.registerHelper("for", function(array, block) {
-		let accum = "";
-		array.forEach(function(item) {
-			accum += block.fn(item);
-		});
-		return accum;
-	});
-
-	// handlebars.registerHelper("accessValue", function(perAssigneePerStatusValues, ))
 
 	const source = fs.readFileSync("src/template.hbr");
 	const template = handlebars.compile(String(source));
 	const result = template({
 		title : "Report for " + process.env.CURRENT_SPRINT,
 		statuses: sprintStatuses,
-		assignees: assignees,
-		perAssigneePerStatusIssueCount: perAssigneePerStatusIssueCount
+		// assignees: assignees,
+		perAssigneePerStatusIssueCount: function() {
+			let assignees = Object.keys(perAssigneePerStatusIssueCount).sort();
+			let result = [];
+			for(let i in assignees) {
+				let row = [];
+				let assignee = assignees[i];
+				row.push(assignee);
+				let total = 0;
+				for(let j in sprintStatuses) {
+					let status = sprintStatuses[j];
+					let issueCount = perAssigneePerStatusIssueCount[assignee][status] || 0;
+					total += issueCount;
+					row.push(issueCount);
+				}
+				row.push(total);
+				result.push(row);
+			}
+			return result;
+		}(),
+		perAssigneePerStatusStoryPoint : function() {
+			let assignees = Object.keys(perAssigneePerStatusStoryPoint).sort();
+			let result = [];
+			for (let i in assignees) {
+				let row = [];
+				let assignee = assignees[i];
+				row.push(assignee);
+				let total = 0;
+				for(let j in sprintStatuses) {
+					let status = sprintStatuses[j];
+					let storypoint = perAssigneePerStatusStoryPoint[assignee][status] || 0;
+					total += storypoint;
+					row.push(storypoint);
+				}
+				row.push(total);
+				result.push(row);
+			}
+			return result;
+		}(),
+		perTestedByIssueNotInReadyToQA: perTestedByIssueNotInReadyToQA,
+		issueCountAndStoryPointsInReadyToQA: issueCountAndStoryPointsInReadyToQA,
+		issueCountAndStoryPointsInBacklog: issueCountAndStoryPointsInBacklog
 	});
 	fs.writeFileSync("tmp/index.html", result);
 }
