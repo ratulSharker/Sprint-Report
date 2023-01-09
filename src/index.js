@@ -47,7 +47,7 @@ const csvRowFilters = {
 	},
 	updatedBetween: (updatedFieldName, startMomentDate, endMomentDate) => {
 		return (row) => {
-			const updated = moment(row[updatedFieldName], "DD/MMM/YY");
+			const updated = moment(row[updatedFieldName], "MM/DD/YYYY");
 			return updated.isSameOrAfter(startMomentDate) && updated.isSameOrBefore(endMomentDate);
 		}
 	}
